@@ -1,0 +1,32 @@
+# Credenciales — NUNCA subir
+.env
+*.env
+
+# CSVs sueltos en raíz (archivos fuera de lugar)
+*.csv
+
+# Datos crudos pesados (subir solo processed)
+data/raw/
+data/external/
+
+# PDFs grandes
+*.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+env/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Modelos serializados grandes
+models/saved/*.pkl
+models/saved/*.joblib
+
+# OS
+.DS_Store
+Thumbs.db

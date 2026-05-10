@@ -1,0 +1,291 @@
+{
+  "modelo": "Entidad-Relación — Sistema de Inteligencia Multifuente Estrecho de Hormuz 2024",
+  "pregunta_investigacion": "¿Es posible predecir el nivel de riesgo operativo diario en el Estrecho de Hormuz usando tráfico marítimo (AIS), actividad aérea (OpenSky), cobertura mediática (GDELT) y eventos del conflicto EEUU-Irán (ACLED)?",
+  "unidad_analisis": "Día calendario en región Hormuz / Mar Rojo",
+
+  "entidades": [
+
+    {
+      "nombre": "DIA_RIESGO",
+      "descripcion": "Unidad central de análisis. Un día calendario con su nivel de riesgo calculado y métricas temporales.",
+      "tipo": "central",
+      "pk": "fecha",
+      "atributos": [
+        {"nombre": "fecha",      "tipo": "DATE",    "descripcion": "Fecha YYYY-MM-DD, clave primaria"},
+        {"nombre": "nivel_riesgo","tipo": "ENUM",   "descripcion": "Target: BAJO / MEDIO / ALTO"},
+        {"nombre": "dia_semana", "tipo": "INT",     "descripcion": "0=Lunes … 6=Domingo"},
+        {"nombre": "mes",        "tipo": "INT",     "descripcion": "1–12"},
+        {"nombre": "dia_del_año","tipo": "INT",     "descripcion": "1–366"}
+      ]
+    },
+
+    {
+      "nombre": "ACLED_REGION",
+      "descripcion": "Eventos de conflicto armado en la región amplia: Yemen, Irak, Irán, EEUU, UAE, Omán. Fuente: ACLED API (OAuth2). 37 722 eventos 2024.",
+      "tipo": "fuente",
+      "pk": "event_id_cnty",
+      "fk": "fecha → DIA_RIESGO.fecha",
+      "archivo_raw": "data/raw/raw_acled_region.csv",
+      "atributos_raw": [
+        {"nombre": "event_id_cnty",  "tipo": "STRING",  "descripcion": "ID único del evento"},
+        {"nombre": "event_date",     "tipo": "DATE",    "descripcion": "Fecha del evento"},
+        {"nombre": "event_type",     "tipo": "STRING",  "descripcion": "Tipo: Battles, Explosions, Protests…"},
+        {"nombre": "sub_event_type", "tipo": "STRING",  "descripcion": "Sub-tipo específico"},
+        {"nombre": "actor1",         "tipo": "STRING",  "descripcion": "Actor principal"},
+        {"nombre": "actor2",         "tipo": "STRING",  "descripcion": "Actor secundario"},
+        {"nombre": "country",        "tipo": "STRING",  "descripcion": "País del evento"},
+        {"nombre": "latitude",       "tipo": "FLOAT",   "descripcion": "Latitud"},
+        {"nombre": "longitude",      "tipo": "FLOAT",   "descripcion": "Longitud"},
+        {"nombre": "fatalities",     "tipo": "INT",     "descripcion": "Fallecidos reportados"},
+        {"nombre": "notes",          "tipo": "TEXT",    "descripcion": "Descripción del evento"}
+      ],
+      "features_agregadas": [
+        {"nombre": "acled_region_n_eventos",    "tipo": "INT",   "descripcion": "Total eventos por día"},
+        {"nombre": "acled_region_n_violentos",  "tipo": "INT",   "descripcion": "Eventos violentos (Battles+Explosions+VaC)"},
+        {"nombre": "acled_region_fatalities",   "tipo": "INT",   "descripcion": "Total fallecidos por día"},
+        {"nombre": "acled_region_n_explosions", "tipo": "INT",   "descripcion": "Explosiones/violencia remota por día"}
+      ]
+    },
+
+    {
+      "nombre": "ACLED_HORMUZ",
+      "descripcion": "Subconjunto de eventos ACLED exclusivamente en la bbox del Estrecho de Hormuz (lat 25–27.5, lon 55.5–58.0): Irán, UAE, Omán. 81 eventos 2024.",
+      "tipo": "fuente",
+      "pk": "event_id_cnty",
+      "fk": "fecha → DIA_RIESGO.fecha",
+      "archivo_raw": "data/raw/raw_acled_hormuz.csv",
+      "atributos_raw": [
+        {"nombre": "event_id_cnty",  "tipo": "STRING",  "descripcion": "ID único del evento"},
+        {"nombre": "event_date",     "tipo": "DATE",    "descripcion": "Fecha del evento"},
+        {"nombre": "event_type",     "tipo": "STRING",  "descripcion": "Tipo de evento"},
+        {"nombre": "country",        "tipo": "STRING",  "descripcion": "País (Iran / UAE / Oman)"},
+        {"nombre": "latitude",       "tipo": "FLOAT",   "descripcion": "Latitud dentro del bbox Hormuz"},
+        {"nombre": "longitude",      "tipo": "FLOAT",   "descripcion": "Longitud dentro del bbox Hormuz"},
+        {"nombre": "fatalities",     "tipo": "INT",     "descripcion": "Fallecidos"}
+      ],
+      "features_agregadas": [
+        {"nombre": "acled_hormuz_n_eventos",   "tipo": "INT",   "descripcion": "Eventos directos en Hormuz por día"},
+        {"nombre": "acled_hormuz_n_violentos", "tipo": "INT",   "descripcion": "Eventos violentos directos en Hormuz"},
+        {"nombre": "acled_hormuz_fatalities",  "tipo": "INT",   "descripcion": "Fallecidos en Hormuz por día"}
+      ]
+    },
+
+    {
+      "nombre": "GDELT",
+      "descripcion": "Cobertura mediática global del conflicto. Descarga ZIP diario de GDELT 2.0. Filtrado por países IRN, USA, YEM, IRQ, SAU, UAE, OMN, ISR y keywords. 28 687 eventos Apr–Oct 2024.",
+      "tipo": "fuente",
+      "pk": "GlobalEventID",
+      "fk": "Day → DIA_RIESGO.fecha",
+      "archivo_raw": "data/raw/raw_gdelt_2024_hormuz.csv",
+      "atributos_raw": [
+        {"nombre": "GlobalEventID",     "tipo": "INT",    "descripcion": "ID único GDELT"},
+        {"nombre": "Day",               "tipo": "INT",    "descripcion": "Fecha formato YYYYMMDD"},
+        {"nombre": "Actor1CountryCode", "tipo": "STRING", "descripcion": "País actor 1 (ISO)"},
+        {"nombre": "Actor2CountryCode", "tipo": "STRING", "descripcion": "País actor 2 (ISO)"},
+        {"nombre": "EventCode",         "tipo": "STRING", "descripcion": "Código CAMEO del evento"},
+        {"nombre": "EventRootCode",     "tipo": "STRING", "descripcion": "Categoría raíz CAMEO"},
+        {"nombre": "QuadClass",         "tipo": "INT",    "descripcion": "1=Verbal Coop, 2=Mat Coop, 3=Verbal Conf, 4=Mat Conf"},
+        {"nombre": "GoldsteinScale",    "tipo": "FLOAT",  "descripcion": "Escala Goldstein −10 (conflicto) a +10 (cooperación)"},
+        {"nombre": "NumMentions",       "tipo": "INT",    "descripcion": "Número de menciones en medios"},
+        {"nombre": "NumSources",        "tipo": "INT",    "descripcion": "Fuentes únicas"},
+        {"nombre": "NumArticles",       "tipo": "INT",    "descripcion": "Artículos que cubren el evento"}
+      ],
+      "features_agregadas": [
+        {"nombre": "gdelt_n_eventos",      "tipo": "INT",   "descripcion": "Total eventos mediáticos por día"},
+        {"nombre": "gdelt_goldstein_mean", "tipo": "FLOAT", "descripcion": "Tono medio Goldstein del día"},
+        {"nombre": "gdelt_goldstein_min",  "tipo": "FLOAT", "descripcion": "Tono mínimo (peor evento del día)"},
+        {"nombre": "gdelt_n_mentions",     "tipo": "INT",   "descripcion": "Total menciones mediáticas"},
+        {"nombre": "gdelt_n_articles",     "tipo": "INT",   "descripcion": "Total artículos"},
+        {"nombre": "gdelt_n_conflicto",    "tipo": "INT",   "descripcion": "Eventos de Conflicto Material (QuadClass=3)"}
+      ]
+    },
+
+    {
+      "nombre": "OPENSKY",
+      "descripcion": "Tráfico aéreo sobre Hormuz y Golfo Pérsico. API OpenSky Network (OAuth2 Client Credentials). Solo 9 fechas clave por límite de créditos free tier. 59 vuelos totales.",
+      "tipo": "fuente",
+      "pk": "icao24+fecha",
+      "fk": "fecha → DIA_RIESGO.fecha",
+      "archivo_raw": "data/raw/raw_opensky_historico.csv",
+      "atributos_raw": [
+        {"nombre": "icao24",        "tipo": "STRING", "descripcion": "Transponder ICAO24 de la aeronave"},
+        {"nombre": "callsign",      "tipo": "STRING", "descripcion": "Indicativo de vuelo"},
+        {"nombre": "origin_country","tipo": "STRING", "descripcion": "País de la aeronave"},
+        {"nombre": "longitude",     "tipo": "FLOAT",  "descripcion": "Longitud GPS"},
+        {"nombre": "latitude",      "tipo": "FLOAT",  "descripcion": "Latitud GPS"},
+        {"nombre": "baro_altitude", "tipo": "FLOAT",  "descripcion": "Altitud barométrica (metros)"},
+        {"nombre": "velocity",      "tipo": "FLOAT",  "descripcion": "Velocidad (m/s)"},
+        {"nombre": "on_ground",     "tipo": "BOOL",   "descripcion": "¿En tierra?"},
+        {"nombre": "fecha",         "tipo": "DATE",   "descripcion": "Fecha de la consulta"},
+        {"nombre": "region",        "tipo": "STRING", "descripcion": "hormuz / golfo"}
+      ],
+      "features_agregadas": [
+        {"nombre": "opensky_n_vuelos",   "tipo": "INT",   "descripcion": "Vuelos detectados por día"},
+        {"nombre": "opensky_n_airborne", "tipo": "INT",   "descripcion": "Vuelos en aire"},
+        {"nombre": "opensky_n_grounded", "tipo": "INT",   "descripcion": "Vuelos en tierra"},
+        {"nombre": "opensky_alt_media",  "tipo": "FLOAT", "descripcion": "Altitud media del día"},
+        {"nombre": "opensky_vel_media",  "tipo": "FLOAT", "descripcion": "Velocidad media del día"}
+      ]
+    },
+
+    {
+      "nombre": "MARITIME_INCIDENTS",
+      "descripcion": "Dataset manual de 31 incidentes marítimos de alta relevancia 2024. Fuentes: Reuters, BBC, AP, UKMTO advisories públicos. Cubre ataques hutíes, incautaciones IRGC, escalada Irán-Israel.",
+      "tipo": "fuente",
+      "pk": "fecha+vessel",
+      "fk": "fecha → DIA_RIESGO.fecha",
+      "archivo_raw": "data/raw/raw_maritime_incidents.csv",
+      "atributos_raw": [
+        {"nombre": "fecha",       "tipo": "DATE",   "descripcion": "Fecha del incidente"},
+        {"nombre": "vessel",      "tipo": "STRING", "descripcion": "Nombre del buque afectado"},
+        {"nombre": "tipo",        "tipo": "STRING", "descripcion": "missile_attack / drone_attack / seizure / airstrike / sinking…"},
+        {"nombre": "actor",       "tipo": "STRING", "descripcion": "Houthi / IRGC / Israel / EEUU / Iran"},
+        {"nombre": "lat",         "tipo": "FLOAT",  "descripcion": "Latitud del incidente"},
+        {"nombre": "lon",         "tipo": "FLOAT",  "descripcion": "Longitud del incidente"},
+        {"nombre": "region",      "tipo": "STRING", "descripcion": "mar_rojo / hormuz / iran / israel / yemen / jordan"},
+        {"nombre": "severidad",   "tipo": "INT",    "descripcion": "Escala 1–5 (1=menor, 5=máxima escalada)"},
+        {"nombre": "descripcion", "tipo": "TEXT",   "descripcion": "Descripción del evento"},
+        {"nombre": "source",      "tipo": "STRING", "descripcion": "maritime_manual"}
+      ],
+      "features_agregadas": [
+        {"nombre": "maritime_n_incidentes",      "tipo": "INT",   "descripcion": "Incidentes por día"},
+        {"nombre": "maritime_severidad_max",     "tipo": "INT",   "descripcion": "Severidad máxima del día"},
+        {"nombre": "maritime_severidad_sum",     "tipo": "INT",   "descripcion": "Suma de severidad del día"},
+        {"nombre": "maritime_n_hormuz",          "tipo": "INT",   "descripcion": "Incidentes específicos en Hormuz"},
+        {"nombre": "maritime_n_ataques_directos","tipo": "INT",   "descripcion": "Ataques físicos directos (misil/dron/airstrike/seizure)"}
+      ]
+    },
+
+    {
+      "nombre": "UKMTO_2024",
+      "descripcion": "Reportes oficiales de incidentes marítimos del United Kingdom Maritime Trade Operations, archivo histórico 2024. Scraped mes a mes con Selenium. 246 registros, 99 incidentes originales, 80 días con actividad.",
+      "tipo": "fuente",
+      "pk": "referencia",
+      "fk": "fecha → DIA_RIESGO.fecha",
+      "archivo_raw": "data/raw/raw_ukmto_2024_archivo.csv",
+      "atributos_raw": [
+        {"nombre": "referencia", "tipo": "STRING", "descripcion": "Código UKMTO, ej: UKMTO INCIDENT 024"},
+        {"nombre": "fecha",      "tipo": "DATE",   "descripcion": "Fecha del incidente (DD/MM/YYYY → YYYY-MM-DD)"},
+        {"nombre": "hora",       "tipo": "TIME",   "descripcion": "Hora UTC del reporte"},
+        {"nombre": "nombre",     "tipo": "STRING", "descripcion": "Nombre completo del reporte UKMTO"},
+        {"nombre": "mes",        "tipo": "STRING", "descripcion": "Mes del archivo (January … November)"},
+        {"nombre": "es_update",  "tipo": "BOOL",   "descripcion": "True si es actualización de un incidente previo"},
+        {"nombre": "tipo",       "tipo": "STRING", "descripcion": "Attack / Warning / Suspicious Activity / Hijack / Advisory"}
+      ],
+      "features_agregadas": [
+        {"nombre": "ukmto_n_incidentes", "tipo": "INT", "descripcion": "Incidentes UKMTO por día"},
+        {"nombre": "ukmto_n_attacks",    "tipo": "INT", "descripcion": "Ataques confirmados por día"},
+        {"nombre": "ukmto_n_suspicious", "tipo": "INT", "descripcion": "Actividad sospechosa por día"},
+        {"nombre": "ukmto_n_hijack",     "tipo": "INT", "descripcion": "Secuestros por día"}
+      ]
+    },
+
+    {
+      "nombre": "DATASET_INTEGRADO",
+      "descripcion": "Tabla final resultado del JOIN de todas las fuentes por fecha. 366 filas (2024 completo), 38 columnas. Incluye features de moving average (7 días) para capturar tendencias. Usada directamente para entrenamiento ML.",
+      "tipo": "procesado",
+      "pk": "fecha",
+      "archivo": "data/processed/dataset_integrado.csv",
+      "distribucion_target": {
+        "BAJO":  269,
+        "MEDIO":  78,
+        "ALTO":   19
+      },
+      "features_ma7": [
+        "acled_hormuz_n_violentos_ma7",
+        "acled_region_n_explosions_ma7",
+        "gdelt_n_conflicto_ma7",
+        "maritime_severidad_sum_ma7",
+        "maritime_n_incidentes_ma7",
+        "ukmto_n_attacks_ma7"
+      ]
+    }
+  ],
+
+  "relaciones": [
+    {
+      "desde": "ACLED_REGION",
+      "hacia": "DIA_RIESGO",
+      "cardinalidad": "N:1",
+      "via": "event_date = fecha",
+      "descripcion": "Muchos eventos ACLED de región se agregan a un día de riesgo"
+    },
+    {
+      "desde": "ACLED_HORMUZ",
+      "hacia": "DIA_RIESGO",
+      "cardinalidad": "N:1",
+      "via": "event_date = fecha",
+      "descripcion": "Eventos ACLED específicos del bbox Hormuz se agregan a un día"
+    },
+    {
+      "desde": "GDELT",
+      "hacia": "DIA_RIESGO",
+      "cardinalidad": "N:1",
+      "via": "Day (YYYYMMDD) = fecha",
+      "descripcion": "Eventos mediáticos GDELT del conflicto se agregan a un día"
+    },
+    {
+      "desde": "OPENSKY",
+      "hacia": "DIA_RIESGO",
+      "cardinalidad": "N:1",
+      "via": "fecha = fecha",
+      "descripcion": "Vuelos detectados en Hormuz/Golfo se agregan a un día (solo 9 fechas)"
+    },
+    {
+      "desde": "MARITIME_INCIDENTS",
+      "hacia": "DIA_RIESGO",
+      "cardinalidad": "N:1",
+      "via": "fecha = fecha",
+      "descripcion": "Incidentes marítimos manuales se agregan a un día"
+    },
+    {
+      "desde": "UKMTO_2024",
+      "hacia": "DIA_RIESGO",
+      "cardinalidad": "N:1",
+      "via": "fecha = fecha",
+      "descripcion": "Reportes UKMTO oficiales 2024 se agregan a un día"
+    },
+    {
+      "desde": "DIA_RIESGO",
+      "hacia": "DATASET_INTEGRADO",
+      "cardinalidad": "1:1",
+      "via": "fecha = fecha",
+      "descripcion": "Cada día con sus features agregadas forma una fila del dataset final"
+    },
+    {
+      "desde": "ACLED_HORMUZ",
+      "hacia": "ACLED_REGION",
+      "cardinalidad": "N:1",
+      "via": "subconjunto geográfico",
+      "descripcion": "ACLED_HORMUZ es el subconjunto de ACLED_REGION dentro del bbox de Hormuz"
+    }
+  ],
+
+  "reglas_nivel_riesgo": {
+    "descripcion": "Función de clasificación determinística que define el target a partir de las fuentes",
+    "ALTO": [
+      "acled_hormuz_n_violentos > 0  (evento violento directo en Hormuz)",
+      "acled_hormuz_fatalities > 0   (fallecidos en Hormuz)",
+      "maritime_severidad_max >= 4   (buque hundido / múltiples muertos / escalada máxima)",
+      "ukmto_n_attacks >= 2          (2+ ataques confirmados en un día)"
+    ],
+    "MEDIO": [
+      "ukmto_n_attacks >= 1          (ataque confirmado UKMTO)",
+      "ukmto_n_incidentes >= 1       (cualquier incidente UKMTO)",
+      "maritime_severidad_max >= 2   (incidente marítimo documentado)",
+      "maritime_n_incidentes >= 1    (incidente en dataset manual)",
+      "acled_region_n_explosions > 35 (escalada regional muy alta)",
+      "gdelt_n_conflicto > 10        (alta cobertura mediática de conflicto)"
+    ],
+    "BAJO": ["ninguna condición anterior se cumple"]
+  },
+
+  "fuentes_api": {
+    "ACLED":    {"auth": "OAuth2 Bearer Token", "endpoint": "https://acleddata.com/api/acled/read"},
+    "GDELT":    {"auth": "ninguna",              "endpoint": "https://data.gdeltproject.org/gdeltv2/{YYYYMMDD}*.export.CSV.zip"},
+    "OpenSky":  {"auth": "OAuth2 Client Credentials", "endpoint": "https://opensky-network.org/api/states/all"},
+    "UKMTO":    {"auth": "ninguna (web pública)", "endpoint": "https://www.ukmto.org/ukmto-products/warnings/2024", "metodo": "Selenium"},
+    "AISStream":{"auth": "API Key WebSocket",   "endpoint": "wss://stream.aisstream.io/v0/stream", "nota": "solo tiempo real"},
+    "FIRMS":    {"auth": "MAP_KEY en URL",       "endpoint": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{key}/MODIS_NRT/{bbox}/{days}"}
+  }
+}

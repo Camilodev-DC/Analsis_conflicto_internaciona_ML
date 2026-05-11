@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 import os
 import joblib
-from knn_turbo import run_knn_turbo
-from random_forest_robusto import run_rf_robusto
+from src.models.train_knn import train_knn_turbo as run_knn_turbo
+from src.models.train_random_forest import train_rf_final as run_rf_robusto
 
 class SistemaEnsambleOSINT:
     """

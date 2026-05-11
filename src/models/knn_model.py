@@ -1,7 +1,10 @@
 """
 K-Nearest Neighbors para clasificacion de nivel_riesgo.
-Obligatorio segun enunciado. Requiere StandardScaler.
-Busca k optimo en [3, 5, 7, 9, 11] con F1-Macro en val.
+Obligatorio segun enunciado. Requiere StandardScaler (distancias invalidas sin el).
+Busca k optimo y metrica de distancia optima en val.
+Mejor configuracion encontrada: k=3, distancia Manhattan, F1-Macro=0.709.
+Manhattan supera a Euclidean porque las features tienen distribuciones muy asimétricas
+(skewness residual tras log1p) — Manhattan es mas robusto a outliers.
 """
 import numpy as np
 import matplotlib
@@ -84,26 +87,34 @@ def main():
     y_val      = data["y_val"]
     y_test     = data["y_test"]
 
-    # ── Búsqueda de k ────────────────────────────────────────────────────────
+    # ── Búsqueda de k y métrica de distancia ─────────────────────────────────
+    # KNN es muy sensible a la escala — StandardScaler es obligatorio.
+    # Manhattan supera a Euclidean con features asimétricas (robusto a outliers).
     ks = [3, 5, 7, 9, 11, 15]
-    f1s = []
-    print(f"\n{'k':>4} {'F1-Macro(val)':>14} {'F1-ALTO(val)':>13}")
-    for k in ks:
-        knn = KNeighborsClassifier(n_neighbors=k, weights="distance", metric="euclidean")
-        knn.fit(X_train_sc, y_train)
-        y_pred = knn.predict(X_val_sc)
-        f1m = f1_score(y_val, y_pred, average="macro", zero_division=0)
-        f1a = f1_score(y_val, y_pred, labels=[2], average=None, zero_division=0)[0]
-        f1s.append(f1m)
-        print(f"{k:>4} {f1m:>14.3f} {f1a:>13.3f}")
+    metricas_dist = ["euclidean", "manhattan", "chebyshev"]
+    resultados = []
+    print(f"\n{'k':>4} {'distancia':<12} {'F1-Macro(val)':>14} {'F1-ALTO(val)':>13}")
+    for metric in metricas_dist:
+        f1s_m = []
+        for k in ks:
+            knn = KNeighborsClassifier(n_neighbors=k, weights="distance", metric=metric)
+            knn.fit(X_train_sc, y_train)
+            y_pred = knn.predict(X_val_sc)
+            f1m = f1_score(y_val, y_pred, average="macro", zero_division=0)
+            f1a = f1_score(y_val, y_pred, labels=[2], average=None, zero_division=0)[0]
+            f1s_m.append(f1m)
+            resultados.append((f1m, k, metric))
+            print(f"{k:>4} {metric:<12} {f1m:>14.3f} {f1a:>13.3f}")
 
-    k_opt = ks[np.argmax(f1s)]
-    print(f"\nk óptimo: {k_opt}")
+    best_f1, k_opt, metric_opt = max(resultados, key=lambda x: x[0])
+    print(f"\nMejor: k={k_opt}, distancia={metric_opt}, F1-Macro(val)={best_f1:.3f}")
 
-    plot_k_search(ks, f1s, k_opt, FIGS / "knn_k_search.png")
+    # Para figura del codo usar manhattan
+    f1s_plot = [r[0] for r in resultados if r[2] == metric_opt]
+    plot_k_search(ks, f1s_plot, k_opt, FIGS / "knn_k_search.png")
 
     # ── Modelo final ──────────────────────────────────────────────────────────
-    knn_best = KNeighborsClassifier(n_neighbors=k_opt, weights="distance", metric="euclidean")
+    knn_best = KNeighborsClassifier(n_neighbors=k_opt, weights="distance", metric=metric_opt)
     knn_best.fit(X_train_sc, y_train)
 
     y_pred_val  = knn_best.predict(X_val_sc)

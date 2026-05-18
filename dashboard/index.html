@@ -23,6 +23,24 @@
       width: 100%;
     }
 
+    /* ── SCROLLBAR CUSTOMIZADO ── */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(var(--p), 0.4);
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.5);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(var(--p), 0.8);
+      box-shadow: 0 0 10px rgba(var(--p), 0.5);
+    }
+
     /* ── HERO WRAPPER ── */
     .hero {
       position: relative;
@@ -338,6 +356,282 @@
     .hero-content.revealed .hero-title  { opacity: 1; transform: translateY(0); transition-delay: .35s; }
     .hero-content.revealed .hero-sub    { opacity: 1; transform: translateY(0); transition-delay: .7s; }
     .hero-content.revealed .hero-cta    { opacity: 1; transform: translateY(0); transition-delay: 1.05s; }
+
+    /* ── HERO CONTENT HIDE (for model view) ── */
+    .hero-content.hidden {
+      opacity: 0 !important;
+      transform: scale(.92) translateY(-20px) !important;
+      transition: opacity .8s ease, transform .8s ease !important;
+      pointer-events: none;
+    }
+
+    /* ── ORBITAL NODES ── */
+    .nodes-container {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 0; height: 0;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .orbit-ring {
+      position: absolute;
+      top: 0; left: 0;
+      width: 0; height: 0;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .node {
+      position: absolute;
+      top: -27px; left: -27px;
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%,
+        rgba(var(--p), .45),
+        rgba(var(--s), .2) 60%,
+        transparent 100%);
+      border: 1.5px solid rgba(var(--p), .6);
+      box-shadow:
+        0 0 20px rgba(var(--p), .4),
+        0 0 60px rgba(var(--p), .15),
+        inset 0 0 15px rgba(var(--s), .2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      pointer-events: auto;
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity .6s ease, transform .6s ease, box-shadow .3s ease;
+    }
+    .node.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .node:hover {
+      box-shadow:
+        0 0 30px rgba(var(--p), .7),
+        0 0 80px rgba(var(--s), .3),
+        inset 0 0 20px rgba(var(--p), .3);
+      transform: scale(1.15);
+    }
+
+    .node-icon {
+      font-size: 1.3rem;
+      color: rgba(255,255,255,.9);
+      text-shadow: 0 0 10px rgba(var(--p),.6);
+    }
+
+    .node-label {
+      position: absolute;
+      bottom: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: .65rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.7);
+      text-shadow: 0 0 8px rgba(var(--p), .5);
+    }
+
+    .node-wrapper {
+      position: absolute;
+      top: 0; left: 0;
+      width: 0; height: 0;
+      transition: transform 3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* Back button */
+    .btn-back {
+      position: fixed;
+      top: 2rem; left: 2rem;
+      z-index: 50;
+      padding: .6rem 1.4rem;
+      font-family: 'Inter', sans-serif;
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,.7);
+      background: rgba(var(--p), .1);
+      border: 1px solid rgba(var(--p), .35);
+      border-radius: 8px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all .3s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .btn-back.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .btn-back:hover {
+      background: rgba(var(--p), .2);
+      border-color: rgba(var(--p), .7);
+      color: #fff;
+    }
+
+    /* Gentle float once settled */
+    @keyframes nodeFloat {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50%      { transform: scale(1) translateY(-10px); }
+    }
+    .node.floating {
+      animation: nodeFloat 3.5s ease-in-out infinite;
+    }
+
+    /* ── MODEL INFO PANEL (Centered Modal) ── */
+    .model-panel {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -45%) scale(0.95);
+      width: 800px; max-height: 85vh;
+      background: rgba(8, 12, 24, 0.85);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid rgba(var(--p), 0.4);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 30px rgba(var(--p), 0.15);
+      z-index: 100;
+      padding: 4.5rem 4rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      overflow-y: auto;
+      color: rgba(255,255,255,0.9);
+    }
+    .model-panel.open { 
+      opacity: 1; 
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+    
+    .panel-back {
+      position: absolute;
+      top: 2rem; left: 2.5rem;
+      background: transparent;
+      border: none;
+      color: rgba(var(--p), 0.9);
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: color 0.3s, transform 0.3s;
+    }
+    .panel-back:hover { 
+      color: #fff; 
+      transform: translateX(-4px); 
+    }
+
+    .panel-header { margin-bottom: 3rem; }
+    .panel-badge {
+      display: inline-block;
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: rgba(var(--s), 0.15);
+      color: rgb(var(--s));
+      border: 1px solid rgba(var(--s), 0.4);
+      border-radius: 6px;
+      margin-bottom: 1.2rem;
+    }
+    .panel-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, rgb(var(--p)), #fff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .panel-sub {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.6);
+      font-style: italic;
+    }
+
+    .panel-section { margin-bottom: 2.5rem; }
+    .panel-section h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: rgb(var(--s));
+      margin-bottom: 1rem;
+      border-bottom: 1px solid rgba(var(--s), 0.2);
+      padding-bottom: 0.5rem;
+    }
+    .panel-section p, .panel-section ul {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.8);
+    }
+    .panel-section ul { padding-left: 1.5rem; }
+    .panel-section li { margin-bottom: 0.8rem; }
+
+    /* ── METRICS GRID ── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      margin-top: 1rem;
+    }
+    .metric-card {
+      background: rgba(var(--p), 0.08);
+      border: 1px solid rgba(var(--p), 0.25);
+      border-radius: 10px;
+      padding: 1.2rem;
+      transition: transform 0.3s, background 0.3s;
+    }
+    .metric-card:hover {
+      background: rgba(var(--p), 0.15);
+      transform: translateY(-4px);
+    }
+    .metric-header {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0.8rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 0.5rem;
+    }
+    .metric-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 0 12px rgba(var(--p), 0.6);
+      line-height: 1.1;
+    }
+    .metric-name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(var(--s), 0.9);
+      margin-top: 0.3rem;
+    }
+    .metric-analysis {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.85);
+      font-style: italic;
+    }
+
+    .verdict {
+      padding-left: 1.5rem;
+      border-left: 4px solid rgb(var(--p));
+      background: linear-gradient(to right, rgba(var(--p),0.1), transparent);
+      padding: 1.5rem 1.5rem 1.5rem 1.8rem;
+      border-radius: 0 8px 8px 0;
+    }
   </style>
 </head>
 <body>
@@ -384,6 +678,77 @@
     <div class="hero-cta">
       <button class="btn-holo" id="btnModels"><span class="btn-icon">◈</span><span class="btn-label">Explorar Modelos</span></button>
       <button class="btn-holo" id="btnSim"><span class="btn-icon">⬡</span><span class="btn-label">Simulador</span></button>
+    </div>
+  </div>
+
+  <!-- Orbital Nodes (hidden initially) -->
+  <div class="nodes-container" id="nodesContainer">
+    <div class="node-wrapper" style="transform: translate(0px, -180px);">
+      <div class="node" id="node0"><span class="node-icon">◈</span><span class="node-label">KNN Turbo</span></div>
+    </div>
+    <div class="node-wrapper" style="transform: translate(171px, -55px);">
+      <div class="node" id="node1"><span class="node-icon">⬡</span><span class="node-label">Random Forest</span></div>
+    </div>
+    <div class="node-wrapper" style="transform: translate(106px, 146px);">
+      <div class="node" id="node2"><span class="node-icon">◇</span><span class="node-label">Naive Bayes</span></div>
+    </div>
+    <div class="node-wrapper" style="transform: translate(-106px, 146px);">
+      <div class="node" id="node3"><span class="node-icon">△</span><span class="node-label">Log. Regression</span></div>
+    </div>
+    <div class="node-wrapper" style="transform: translate(-171px, -55px);">
+      <div class="node" id="node4"><span class="node-icon">⊕</span><span class="node-label">K-Means</span></div>
+    </div>
+  </div>
+
+  <!-- Back button -->
+  <button class="btn-back" id="btnBack">← Volver</button>
+
+  <!-- Model Info Panel -->
+  <div class="model-panel" id="modelPanel">
+    <button class="panel-back" id="panelClose">← Atrás a nodos</button>
+    <div class="panel-header">
+      <div class="panel-badge" id="panelBadge"></div>
+      <h2 class="panel-title" id="panelTitle"></h2>
+      <p class="panel-sub" id="panelSub"></p>
+    </div>
+    <div class="panel-body">
+      <div class="panel-section analogy-box" style="margin-bottom: 1.5rem; padding-left: 1rem; border-left: 3px solid rgba(255,255,255,0.3); font-style: italic;">
+        <p id="panelAnalogy" style="font-size: 1.15rem; color: #fff;"></p>
+      </div>
+      
+      <div class="panel-section usage-box" style="margin-bottom: 2.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <div style="background: rgba(var(--s), 0.1); padding: 1.2rem; border-radius: 8px; border-left: 3px solid rgb(var(--s));">
+          <strong style="color: rgb(var(--s)); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">🎯 Misión en el Proyecto</strong>
+          <p id="panelMission" style="margin-top: 0.4rem; font-size: 1rem; color: rgba(255,255,255,0.9); line-height: 1.5;"></p>
+        </div>
+        <div style="background: rgba(var(--p), 0.15); padding: 1.2rem; border-radius: 8px; border-left: 3px solid rgb(var(--p));">
+          <strong style="color: #fff; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">⏱️ Cuándo usarlo</strong>
+          <p id="panelWhenToUse" style="margin-top: 0.4rem; font-size: 1rem; color: rgba(255,255,255,0.9); line-height: 1.5;"></p>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3>Enfoque Estratégico</h3>
+        <p id="panelFocus"></p>
+      </div>
+      <div class="panel-section">
+        <h3>Arquitectura & Técnicas</h3>
+        <ul id="panelTechniques"></ul>
+      </div>
+      <div class="panel-section">
+        <h3>Hiperparámetros Vitales (Las Perillas)</h3>
+        <ul id="panelHyperparameters"></ul>
+      </div>
+      <div class="panel-section">
+        <h3>Métricas que evaluaron el modelo</h3>
+        <div id="panelMetricsGrid" class="metrics-grid">
+          <!-- Renderizado dinámicamente -->
+        </div>
+      </div>
+      <div class="panel-section verdict">
+        <h3>Veredicto del Analista</h3>
+        <p id="panelVerdict"></p>
+      </div>
     </div>
   </div>
 
@@ -453,11 +818,271 @@
     const blackout    = document.getElementById('blackout');
     const heroContent = document.getElementById('heroContent');
 
-    // 1) After 1s → fade out black overlay (reveals sphere + scene)
     setTimeout(() => blackout.classList.add('fade-out'), 1000);
-
-    // 2) After 2.8s → reveal text elements with stagger
     setTimeout(() => heroContent.classList.add('revealed'), 2800);
+  });
+
+  /* ── DATA: INFORMACIÓN DE MODELOS ── */
+  const modelData = {
+    0: {
+      badge: "Clasificador Principal",
+      title: "KNN Turbo",
+      subtitle: "El Especialista en Precisión",
+      analogy: "💡 Es como un analista experimentado: ante una situación tensa, busca en su memoria los días pasados más similares. Si la mayoría de esos días terminaron en guerra, dispara la alerta.",
+      mission: "Actuar como el filtro de alta precisión táctica para evitar crear pánico innecesario en la cadena de mando.",
+      whenToUse: "Cuando se requiere confirmación absoluta de que la amenaza es real y no hay margen para emitir falsas alarmas.",
+      focus: "Prioriza la alta fidelidad y evita generar falsas alarmas operativas. Es el filtro táctico de precisión.",
+      techniques: [
+        "<b>Pipeline de Reducción Dimensional (PCA):</b> Debido a la 'maldición de la dimensionalidad', se inyectó una capa de PCA paramétrico que comprimió 47 variables en 5 componentes ortogonales. Esto erradica el ruido de fondo y concentra la señal de crisis.",
+        "<b>Filtrado Estricto de Features (Top 15):</b> Antes del PCA, se realizó un filtrado selectivo reteniendo exclusivamente las 15 métricas marítimas y diplomáticas con mayor correlación directa hacia la escalada bélica.",
+        "<b>Escalado Robusto a Outliers:</b> Las distancias de KNN son extremadamente sensibles. Se implementó una normalización robusta garantizando que los picos bélicos extremos (días de ataque masivo) no deformaran el mapa tridimensional del modelo.",
+        "<b>Arquitectura de Distancias Dinámicas:</b> Utiliza ponderación de distancia inversamente proporcional. Esto asegura que si el escenario actual es un 'clon exacto' de un ataque histórico, ese voto valga el doble que el de eventos lejanos."
+      ],
+      hyperparameters: [
+        "<b>n_neighbors: 5</b> (Equilibrio perfecto entre vecindario y rechazo de ruido atípico).",
+        "<b>weights: 'distance'</b> (Otorga mayor peso de votación a los días más similares, crucial para predecir crisis inminentes).",
+        "<b>metric: 'minkowski'</b> (Espacio euclidiano estándar sobre las 5 dimensiones del PCA)."
+      ],
+      detailedMetrics: [
+        { name: "Precision (ALTO)", value: "100%", analysis: "La joya de la corona estratégica. Cero falsas alarmas comprobadas. Operacionalmente, garantiza que si emite una orden de alerta roja, la movilización está 100% justificada." },
+        { name: "Accuracy", value: "94%", analysis: "Demuestra una visión panorámica soberbia. El modelo entiende el entorno operativo logrando acertar en casi la totalidad de los días." },
+        { name: "Recall (ALTO)", value: "85%", analysis: "Para mantener su precisión invicta (100%), sacrifica un poco de exhaustividad. Atrapa la mayoría de las crisis, pero deja pasar algunas amenazas sutiles." },
+        { name: "F1-Macro", value: "0.93", analysis: "Un balance estructural casi perfecto. Demuestra que el modelo no sacrificó su capacidad de clasificar riesgos medios o bajos solo para lucirse en la clase alta." }
+      ],
+      verdict: "Extremadamente resiliente ante ruido (solo 6.4% de caída ante un 10% de ruido). Prefiere ser escéptico a ser histérico, asegurando alertas militares fiables."
+    },
+    1: {
+      badge: "Clasificador Secundario",
+      title: "Random Forest",
+      subtitle: "El Centinela de Seguridad",
+      analogy: "💡 Es como un consejo de generales. Combina cientos de opiniones distintas; aunque uno se equivoque, la decisión de la mayoría garantiza que nunca se escape una crisis.",
+      mission: "Ser el centinela estratégico que detecta absolutamente todas las anomalías y amenazas tempranas del panorama.",
+      whenToUse: "En escenarios preventivos de máxima alerta, cuando el costo de omitir un evento crítico es mucho más grave que lidiar con una falsa alarma.",
+      focus: "Su misión es la máxima detección de crisis. No deja pasar ningún evento crítico por alto (Seguridad Primero).",
+      techniques: [
+        "<b>Inyección Sintética (SMOTE + Tomek Links):</b> Ataca el severo desbalance de clases sobremuestreando la guerra mediante interpolación geométrica (SMOTE) y limpiando fronteras ruidosas eliminando pares contradictorios (Tomek). El modelo entrena en un campo de batalla balanceado.",
+        "<b>Sensor de Shock Inercial:</b> Consume deltas temporales. Se le inyectó una variable sintética que detecta rupturas de tendencia a corto plazo (pasar de 0 a 100 incidentes en 24h), crítica para los árboles de decisión.",
+        "<b>Ensamble Bootstrap (Bagging):</b> Construye 200 árboles paralelos sobre sub-muestras aleatorias. La predicción final no depende de un hilo lógico, sino del consenso democrático del bosque, minimizando la varianza estadística.",
+        "<b>Análisis de Impureza de Nodos (Gini):</b> La arquitectura mide internamente qué corte matemático dividió mejor el conflicto, revelando orgánicamente si una explosión (ACLED) pesa más que una noticia (GDELT)."
+      ],
+      hyperparameters: [
+        "<b>n_estimators: 200</b> (Un bosque profundo y denso para garantizar estabilidad matemática en la votación).",
+        "<b>class_weight: 'balanced'</b> (Castiga severamente los errores en la clase ALTO forzando al modelo a aprenderla).",
+        "<b>max_depth: None</b> (Permite a los árboles crecer hasta capturar las fronteras más complejas y no-lineales)."
+      ],
+      detailedMetrics: [
+        { name: "Recall (ALTO)", value: "100%", analysis: "El muro de contención absoluto. Su exhaustividad perfecta significa que logró capturar el 100% de las amenazas críticas. Es la red de seguridad del proyecto." },
+        { name: "Precision (ALTO)", value: "78%", analysis: "Al ser un 'centinela', prefiere pecar de paranoico. Genera algunas falsas alarmas (sacrifica precisión) con tal de asegurar que nunca se le escape un ataque real." },
+        { name: "Accuracy", value: "91%", analysis: "Ligeramente inferior al KNN. Su sesgo conservador y protector lo hace clasificar días de duda moderada directamente como amenazas inminentes." },
+        { name: "F1-Macro", value: "0.91", analysis: "Mantiene un excelente balance armónico a pesar de haber sido sometido a fuertes re-balanceos sintéticos (SMOTE). Su sesgo preventivo no destruye su utilidad." }
+      ],
+      verdict: "El complemento perfecto para el KNN. Mientras el KNN ofrece precisión quirúrgica, este modelo aporta visión estratégica global para evitar puntos ciegos."
+    },
+    2: {
+      badge: "Baseline Probabilístico",
+      title: "Naive Bayes",
+      subtitle: "Cuantificador de Incertidumbre",
+      analogy: "💡 Es como un detective de la vieja escuela que evalúa cada pista por separado. Si la pista del mar y la pista de las noticias son malas, asume lo peor rápidamente.",
+      mission: "Ofrecer una probabilidad matemática pura de la evolución del riesgo, aislando los sesgos cruzados entre diferentes fuentes.",
+      whenToUse: "Para análisis predictivos teóricos rápidos o cuando se necesita medir el impacto estadístico aislado de una sola variable (ej. medios de comunicación).",
+      focus: "Genera probabilidades calibradas continuas para estimar el riesgo, basándose en la asunción de independencia entre fuentes.",
+      techniques: [
+        "<b>Teorema Probabilístico Puro:</b> A diferencia de algoritmos geométricos, esta arquitectura descompone la probabilidad del nivel de amenaza usando la verosimilitud de la evidencia estadística.",
+        "<b>Densidad de Kernel Gaussiana:</b> Aplica una campana de Gauss a variables continuas asumiendo una distribución normal perfecta para estimar la pertenencia a una u otra clase de conflicto.",
+        "<b>Ingeniería de Priors Adaptativos:</b> La red fue hackeada a nivel matemático reemplazando los priors empíricos de la guerra por priors inversamente proporcionales a su frecuencia para forzar al modelo a detectar el riesgo mayor.",
+        "<b>Aislamiento Multivariable (Efecto Ingenuo):</b> Obliga artificialmente a la red a no crear conexiones cruzadas, calculando el riesgo marítimo como la multiplicación pura e independiente de la prensa, los ataques y las bajas."
+      ],
+      hyperparameters: [
+        "<b>priors: [0.116, 0.116, 0.768]</b> (La perilla maestra: forzamos al modelo a estar 'paranoico' asignándole un 76.8% de probabilidad base a la clase ALTO).",
+        "<b>var_smoothing: 1e-9</b> (Estándar de suavizado gaussiano para evitar que varianzas cercanas a cero rompan el cálculo)."
+      ],
+      detailedMetrics: [
+        { name: "Recall (ALTO)", value: "80%", analysis: "Incluso asumiendo erróneamente que las variables no tienen relación entre sí, logra atrapar 8 de cada 10 crisis comprobando el poder subyacente de la data pura." },
+        { name: "Precision (ALTO)", value: "57%", analysis: "Su punto más débil. Genera un 43% de falsas alarmas porque se asusta fácilmente ante picos mediáticos (noticias) aunque no haya incidentes navales físicos." },
+        { name: "F1-ALTO", value: "0.667", analysis: "La media matemática entre su excelente Recall y su pobre Precision. Demuestra que sirve como una alarma rápida y teórica, pero requiere confirmación humana." },
+        { name: "Accuracy", value: "35.6%", analysis: "Falla estrepitosamente en la visión general. Para enfocarse en atrapar los picos (ALTO), destruye por completo su capacidad de acertar los días de riesgo MEDIO." }
+      ],
+      verdict: "Falla al asumir erróneamente que variables como noticias y ataques son independientes.<br><br><span style='color: rgb(var(--p)); font-weight: 600;'>💡 Roadmap de Mejora (v2.0):</span> Alimentar el modelo exclusivamente con los componentes ortogonales del <i>PCA</i> para garantizar independencia matemática real, y migrar el algoritmo de GaussianNB a <i>ComplementNB</i> para mitigar el desbalance extremo de clases."
+    },
+    3: {
+      badge: "Baseline Lineal",
+      title: "Log. Regression",
+      subtitle: "El Auditor Estructural",
+      analogy: "💡 Es como un contador estricto: le asigna un peso o castigo matemático exacto a cada factor, diciéndonos de frente qué variables mueven la balanza de la guerra.",
+      mission: "Fungir como el auditor de transparencia algorítmica, validando matemáticamente qué variables importan más.",
+      whenToUse: "Al redactar informes oficiales para tomadores de decisiones que exigen saber y justificar exactamente 'por qué' el sistema elevó el nivel de alerta.",
+      focus: "Establecer la línea base de predicción transparente y ofrecer pesos interpretables directamente proporcionales a cada variable.",
+      techniques: [
+        "<b>Fronteras Multiclase (Multinomial):</b> Proyecta hiperplanos lineales que dividen el espacio geopolítico en los tres estados (BAJO, MEDIO, ALTO) de manera simultánea en vez del enfoque clásico Uno-vs-Resto.",
+        "<b>Optimización Log-Loss (L-BFGS):</b> Minimiza la función de pérdida entrópica utilizando un algoritmo cuasi-Newton, ideal para encontrar el valle global de los pesos matemáticos con convergencia súper rápida.",
+        "<b>Regularización L2 (Ridge Penalty):</b> Incorpora un castigo matemático a la magnitud de los coeficientes, evitando que una sola variable con mucho ruido (e.g., bots de GDELT) domine completamente la predicción.",
+        "<b>Estimación Continua (Softmax):</b> Entrega una distribución Softmax donde la suma de probabilidades de los tres escenarios da 100%, permitiendo a los analistas fijar umbrales de alerta temprana ultra-personalizados."
+      ],
+      hyperparameters: [
+        "<b>multi_class: 'multinomial'</b> (Calcula las probabilidades cruzadas de las 3 clases simultáneamente).",
+        "<b>solver: 'lbfgs'</b> (Optimizador eficiente para garantizar una convergencia rápida sin estancarse).",
+        "<b>C: 1.0</b> (Fuerza de regularización estándar para evitar el sobreajuste de los coeficientes)."
+      ],
+      detailedMetrics: [
+        { name: "Base", value: "Benchmark", analysis: "Al ser un modelo lineal, no busca la exactitud absoluta sino trazar la frontera matemática. Provee una validación estricta de que la conflictividad obedece a factores lógicos y medibles." },
+        { name: "Pesos Relativos", value: "Transparentes", analysis: "A diferencia de una red neuronal, permite extraer el peso numérico de factores vitales como los incidentes UKMTO, brindando alta confiabilidad humana a la cadena táctica." }
+      ],
+      verdict: "Provee la validación matemática estricta. Su principal aporte es confirmar la importancia direccional de métricas como el 'Goldstein Index' mediático sobre el conflicto real."
+    },
+    4: {
+      badge: "Clustering Espaciotemporal",
+      title: "K-Means",
+      subtitle: "Descubridor de Regímenes",
+      analogy: "💡 Es como un historiador. No intenta predecir el mañana, sino que mira los datos crudos y descubre cuándo cambió verdaderamente la 'Era' o régimen del conflicto.",
+      mission: "Cartografiar de manera automática y no supervisada las verdaderas eras geopolíticas del año.",
+      whenToUse: "En evaluaciones retrospectivas (mensuales o trimestrales) para validar estructuralmente si el teatro de operaciones ha entrado definitivamente en una nueva fase bélica.",
+      focus: "No predice días individuales; descubre de manera no supervisada si el año 2024 tuvo regímenes temporales de conflicto estructurados.",
+      techniques: [
+        "<b>Aprendizaje No Supervisado de Centroides:</b> En lugar de entrenar con etiquetas humanas, lanza centroides exploratorios en el espacio de datos para que la 'gravedad' matemática de los eventos agrupe los regímenes de guerra orgánicamente.",
+        "<b>Métricas de Silueta Espaciotemporal:</b> Evaluó la cohesión intracluster vs separación intercluster determinando de forma agnóstica que la guerra de 2024 tuvo exactamente 3 fases históricas.",
+        "<b>Optimización k-means++:</b> Utiliza inicialización probabilística dispersando los centroides iniciales al máximo. Esto evita converger en mínimos locales falsos (como confundir dos meses similares con una nueva era).",
+        "<b>Proyección de Anclas Mensuales:</b> El agrupamiento colapsó variables ancla en ventanas mensuales. Esto erradicó la fricción diaria para revelar la verdadera macro-historia táctica del estrecho de Ormuz."
+      ],
+      hyperparameters: [
+        "<b>n_clusters (k): 3</b> (Seleccionado estrictamente en base a la matemática de silueta, revelando Paz, Tensión y Escalada).",
+        "<b>init: 'k-means++'</b> (Previene que los centroides inicien en posiciones aleatorias pobres acelerando la convergencia).",
+        "<b>max_iter: 300</b> (Límite para asegurar que el algoritmo se estabilice en un óptimo global)."
+      ],
+      detailedMetrics: [
+        { name: "Silhouette", value: "0.401", analysis: "Un puntaje sumamente sólido considerando el ruido geopolítico. Confirma numéricamente que los regímenes mensuales de guerra están densamente agrupados en torno a patrones similares." },
+        { name: "Davies-Bouldin", value: "0.776", analysis: "Al ubicarse fuertemente por debajo de 1.0, demuestra estadísticamente que la frontera entre el mes de paz y el estallido bélico está clarísimamente trazada en el espacio multidimensional." }
+      ],
+      verdict: "Reveló un régimen sostenido de conflicto (Cluster 0) de 7 meses ininterrumpidos. Confirmó que la crisis de Abril fue un punto de inflexión estructural, no una anomalía aislada."
+    }
+  };
+
+  /* ── DOM ELEMENTS FOR PANEL ── */
+  const modelPanel = document.getElementById('modelPanel');
+  const panelClose = document.getElementById('panelClose');
+  const pBadge = document.getElementById('panelBadge');
+  const pTitle = document.getElementById('panelTitle');
+  const pSub = document.getElementById('panelSub');
+  const pAnalogy = document.getElementById('panelAnalogy');
+  const pFocus = document.getElementById('panelFocus');
+  const pTech = document.getElementById('panelTechniques');
+  const pHyper = document.getElementById('panelHyperparameters');
+  const pMetricsGrid = document.getElementById('panelMetricsGrid');
+  const pVerdict = document.getElementById('panelVerdict');
+
+  /* ── EXPLORAR MODELOS: Expand outwards ── */
+  const btnModels = document.getElementById('btnModels');
+  const btnBack   = document.getElementById('btnBack');
+  const heroContent = document.getElementById('heroContent');
+  const nodesContainer = document.getElementById('nodesContainer');
+  const wrappers = nodesContainer.querySelectorAll('.node-wrapper');
+
+  // Final positions (Radius = 330)
+  const settledPos = [
+    { x:    0, y: -330 }, // Top
+    { x:  314, y: -102 }, // Top right
+    { x:  194, y:  267 }, // Bottom right
+    { x: -194, y:  267 }, // Bottom left
+    { x: -314, y: -102 }, // Top left
+  ];
+
+  // Start positions (Radius = 180)
+  const startPos = [
+    { x:    0, y: -180 }, // Top
+    { x:  171, y:  -55 }, // Top right
+    { x:  106, y:  146 }, // Bottom right
+    { x: -106, y:  146 }, // Bottom left
+    { x: -171, y:  -55 }, // Top left
+  ];
+
+  let modelsViewActive = false;
+  let settleTimers = [];
+
+  btnModels.addEventListener('click', () => {
+    if (modelsViewActive) return;
+    modelsViewActive = true;
+
+    // Hide hero text
+    heroContent.classList.add('hidden');
+
+    // Expand nodes
+    wrappers.forEach((wrapper, i) => {
+      const node = wrapper.querySelector('.node');
+      
+      // Node Click Handler for Panel
+      node.onclick = () => {
+        const data = modelData[i];
+        pBadge.innerText = data.badge;
+        pTitle.innerText = data.title;
+        pSub.innerText = data.subtitle;
+        pAnalogy.innerText = data.analogy;
+        document.getElementById('panelMission').innerText = data.mission;
+        document.getElementById('panelWhenToUse').innerText = data.whenToUse;
+        pFocus.innerHTML = data.focus;
+        pTech.innerHTML = data.techniques.map(t => `<li>${t}</li>`).join('');
+        pHyper.innerHTML = data.hyperparameters.map(h => `<li>${h}</li>`).join('');
+        
+        // Render detailed metrics dynamically
+        pMetricsGrid.innerHTML = data.detailedMetrics.map(m => `
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-value">${m.value}</span>
+              <span class="metric-name">${m.name}</span>
+            </div>
+            <p class="metric-analysis">${m.analysis}</p>
+          </div>
+        `).join('');
+
+        pVerdict.innerHTML = data.verdict;
+        
+        modelPanel.classList.add('open');
+        btnBack.classList.remove('visible'); // Hide general back button
+      };
+
+      const timer = setTimeout(() => {
+        node.classList.add('visible');
+        wrapper.style.transform = `translate(${settledPos[i].x}px, ${settledPos[i].y}px)`;
+
+        // Add gentle float
+        setTimeout(() => {
+          node.classList.add('floating');
+          node.style.animationDelay = `${i * 0.6}s`;
+        }, 3000); 
+      }, 400 + i * 200);
+      settleTimers.push(timer);
+    });
+
+    // Show back button
+    setTimeout(() => btnBack.classList.add('visible'), 600);
+  });
+
+  // Close Panel
+  panelClose.addEventListener('click', () => {
+    modelPanel.classList.remove('open');
+    btnBack.classList.add('visible'); // Show general back button again
+  });
+
+  btnBack.addEventListener('click', () => {
+    if (!modelsViewActive) return;
+    modelsViewActive = false;
+    modelPanel.classList.remove('open'); // close panel if open
+    
+    settleTimers.forEach(t => clearTimeout(t));
+    settleTimers = [];
+
+    // Hide nodes
+    wrappers.forEach((wrapper, i) => {
+      const node = wrapper.querySelector('.node');
+      node.classList.remove('visible');
+      node.classList.remove('floating');
+      node.style.animationDelay = '';
+      wrapper.style.transform = `translate(${startPos[i].x}px, ${startPos[i].y}px)`;
+      node.onclick = null; // remove handler
+    });
+    
+    btnBack.classList.remove('visible');
+
+    // Show hero text
+    setTimeout(() => heroContent.classList.remove('hidden'), 400);
   });
 </script>
 </body>
